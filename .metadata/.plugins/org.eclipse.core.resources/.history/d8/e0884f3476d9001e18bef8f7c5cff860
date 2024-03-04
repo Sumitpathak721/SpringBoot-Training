@@ -1,0 +1,93 @@
+package auth;
+
+import com.google.gson.Gson;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+/**
+ * Servlet implementation class login
+ */
+public class login extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public login() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    	response.getWriter().append("login Page");
+    }
+    
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.setContentType("application/json");
+		
+		try {
+			
+	        String email = request.getParameter("email");
+	        String pass = request.getParameter("password");
+	        System.out.print("email = "+email);
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection con=DriverManager.getConnection(
+				"jdbc:mysql://localhost:3306/tradingapp","root","root");
+			Statement stmt=con.createStatement();
+			ResultSet rs = stmt.executeQuery("select user where email="+email+" and password="+pass+";");
+			if(rs.next()) {
+				response.setStatus(200);
+				
+//				Mapping user data to JSON
+				Map<String,Object> data = new HashMap<>();
+				data.put("userId", rs.getInt("id"));
+				data.put("name", rs.getString("name"));
+				
+		        String jsonData = new Gson().toJson(data);
+		        
+		        PrintWriter out = response.getWriter();
+		        out.print(jsonData);
+		        out.flush();
+		        
+			}else {
+				response.setStatus(401);
+			}
+			con.close();
+			
+			
+		}catch(Exception e) {
+			System.out.print(e);
+			response.setStatus(500);
+		}
+
+        // Get the parameter names
+//        System.out.print("name = "+request.getParameter("name"));
+        
+        
+		// prepare data
+//		Map<String, Object> data = new HashMap<>();
+//        data.put("key1", "value1");
+//        data.put("key2", 42);
+//        String jsonData = new Gson().toJson(data);
+//        PrintWriter out = response.getWriter();
+//        out.print(jsonData);
+//        out.flush();
+	}
+
+}
